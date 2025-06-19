@@ -1,13 +1,9 @@
 <template>
   <div>
-    <h2 style="font-size: 2rem; font-weight: bold; margin-bottom: 32px;">
+    <h2 style="font-size: 2rem; font-weight: bold; margin-bottom: 32px">
       Danh sách passport chờ xác nhận
     </h2>
-    <div
-      v-for="(p, idx) in passports"
-      :key="idx"
-      class="passport-card"
-    >
+    <div v-for="(p, idx) in passports" :key="idx" class="passport-card">
       <div class="img-col">
         <img
           :src="backendUrl + '/api/passport-img/' + p.image_photo"
@@ -29,11 +25,24 @@
       </div>
     </div>
     <div v-if="infoDialog" class="dialog-backdrop">
-      <div class="info-dialog">
-        <h3>Khách hàng đã được tạo thành công!</h3>
-        <div>Mã khách hàng: <b>{{ infoData.customer_code }}</b></div>
+      <div
+        class="info-dialog"
+        :class="{
+          'dialog-success': infoData.result === 'new customer created',
+          'dialog-existed': infoData.result === 'customer existed',
+        }"
+      >
+        <h3 v-if="infoData.result === 'new customer created'">
+          Tạo khách hàng mới thành công!
+        </h3>
+        <h3 v-else-if="infoData.result === 'customer existed'">
+          Khách hàng đã tồn tại
+        </h3>
+        <div>
+          Mã khách hàng: <b>{{ infoData.customer_code }}</b>
+        </div>
         <div>Mã ICAO/MRZ:</div>
-        <pre style="background:#f9f9f9; border-radius:6px; padding:8px;">{{ infoData.icao_mrz }}</pre>
+        <pre>{{ infoData.icao_mrz }}</pre>
         <button @click="infoDialog = false">Đóng</button>
       </div>
     </div>
@@ -48,7 +57,7 @@ export default {
       passports: [],
       backendUrl: "http://localhost:4000",
       infoDialog: false,
-      infoData: {}
+      infoData: {},
     };
   },
   methods: {
@@ -57,18 +66,20 @@ export default {
       this.passports = res.data;
     },
     async confirm(p) {
-      const res = await axios.post(this.backendUrl + "/check-passport", { icao_mrz: p.icao_mrz });
+      const res = await axios.post(this.backendUrl + "/check-passport", {
+        icao_mrz: p.icao_mrz,
+      });
       this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
       this.infoDialog = true;
       setTimeout(this.fetchPassports, 500);
-    }
+    },
   },
   mounted() {
     this.fetchPassports();
     setInterval(() => {
       this.fetchPassports();
     }, 10000);
-  }
+  },
 };
 </script>
 
@@ -123,7 +134,7 @@ export default {
   padding: 10px 18px;
   font-size: 1.13rem;
   line-height: 1.5;
-  font-family: 'Fira Mono', 'Consolas', monospace;
+  font-family: "Fira Mono", "Consolas", monospace;
   box-shadow: 0 1px 2px #eee;
   margin-bottom: 12px;
 }
@@ -145,8 +156,16 @@ export default {
   opacity: 0.92;
 }
 .dialog-backdrop {
-  position: fixed; left: 0; top: 0; right: 0; bottom: 0;
-  background: #0006; z-index: 1000; display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: #0006;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .info-dialog {
   background: #fff;
@@ -166,6 +185,14 @@ export default {
   font-size: 1.05rem;
   cursor: pointer;
   font-weight: bold;
+}
+.info-dialog.dialog-success {
+  border-left: 8px solid #52c41a;
+  background: #f6ffed;
+}
+.info-dialog.dialog-existed {
+  border-left: 8px solid #faad14;
+  background: #fffbe6;
 }
 .info-dialog button:hover {
   background: #0073b7;
