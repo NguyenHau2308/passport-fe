@@ -28,6 +28,15 @@
         </button>
       </div>
     </div>
+    <div v-if="infoDialog" class="dialog-backdrop">
+      <div class="info-dialog">
+        <h3>Khách hàng đã được tạo thành công!</h3>
+        <div>Mã khách hàng: <b>{{ infoData.customer_code }}</b></div>
+        <div>Mã ICAO/MRZ:</div>
+        <pre style="background:#f9f9f9; border-radius:6px; padding:8px;">{{ infoData.icao_mrz }}</pre>
+        <button @click="infoDialog = false">Đóng</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -38,6 +47,8 @@ export default {
     return {
       passports: [],
       backendUrl: "http://localhost:4000",
+      infoDialog: false,
+      infoData: {}
     };
   },
   methods: {
@@ -46,9 +57,11 @@ export default {
       this.passports = res.data;
     },
     async confirm(p) {
-      const res = await axios.post(this.backendUrl + "/check-passport", p);
-      alert("Kết quả: " + JSON.stringify(res.data));
-    },
+      const res = await axios.post(this.backendUrl + "/check-passport", { icao_mrz: p.icao_mrz });
+      this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
+      this.infoDialog = true;
+      setTimeout(this.fetchPassports, 500);
+    }
   },
   mounted() {
     this.fetchPassports();
@@ -130,5 +143,31 @@ export default {
   background: linear-gradient(90deg, #48be52, #2a8fd6);
   box-shadow: 0 2px 10px #1ea66144;
   opacity: 0.92;
+}
+.dialog-backdrop {
+  position: fixed; left: 0; top: 0; right: 0; bottom: 0;
+  background: #0006; z-index: 1000; display: flex; align-items: center; justify-content: center;
+}
+.info-dialog {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 40px;
+  box-shadow: 0 6px 48px #3336;
+  min-width: 340px;
+  text-align: center;
+}
+.info-dialog button {
+  margin-top: 24px;
+  background: #44aaff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 32px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+.info-dialog button:hover {
+  background: #0073b7;
 }
 </style>
