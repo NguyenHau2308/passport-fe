@@ -46,6 +46,17 @@
         <button @click="infoDialog = false">Đóng</button>
       </div>
     </div>
+    <h2>Danh sách đã xác nhận</h2>
+    <div v-for="p in processedPassports" :key="p.prefix" class="passport-card">
+      <div class="info-col">
+        <div>
+          <b>{{ "KH" + p.prefix.padStart(3, "0") }}</b> -
+          <button class="confirm-btn" @click="printPassport(p)">
+            In giấy xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -55,6 +66,7 @@ export default {
   data() {
     return {
       passports: [],
+      processedPassports: [],
       backendUrl: "http://localhost:4000",
       infoDialog: false,
       infoData: {},
@@ -64,6 +76,10 @@ export default {
     async fetchPassports() {
       const res = await axios.get(this.backendUrl + "/api/pending-passports");
       this.passports = res.data;
+    },
+    async fetchProcessed() {
+      const res = await axios.get(this.backendUrl + "/api/processed-passports");
+      this.processedPassports = res.data;
     },
     async confirm(p) {
       console.warn("==> [Check] Gửi check-passport", p.icao_mrz);
@@ -96,11 +112,45 @@ export default {
         this.infoDialog = true;
       }
     },
+    printPassport(passport) {
+      const clone = JSON.parse(JSON.stringify(passport));
+      const code = "KH" + String(clone.prefix).padStart(3, "0");
+      const mrz = clone.icao_mrz ? clone.icao_mrz.replace(/\n/g, "<br>") : "";
+      const win = window.open("", "_blank");
+      win.document.write(`
+    <html>
+      <head>
+        <title>Phiếu xác nhận thông tin khách hàng</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; }
+          h2 { margin-bottom: 16px; }
+          .block { margin: 12px 0; }
+          pre { background: #fafafa; border-radius: 8px; padding: 12px; }
+        </style>
+      </head>
+      <body>
+        <h2>PHIẾU XÁC NHẬN THÔNG TIN KHÁCH HÀNG</h2>
+        <div class="block"><b>Mã khách hàng:</b> ${code}</div>
+        <div class="block"><b>Mã ICAO/MRZ:</b></div>
+        <pre>${mrz}</pre>
+        <div class="block" style="margin-top: 32px;">Xác nhận và ký tên:</div>
+        <div style="height:60px; border:1px solid #aaa; margin:24px 0 0 0;"></div>
+      </body>
+    </html>
+  `);
+      win.document.close();
+      setTimeout(() => {
+        win.print();
+        win.close();
+      }, 300);
+    },
   },
   mounted() {
     this.fetchPassports();
+    this.fetchProcessed();
     setInterval(() => {
       this.fetchPassports();
+      this.fetchProcessed();
     }, 10000);
   },
 };
