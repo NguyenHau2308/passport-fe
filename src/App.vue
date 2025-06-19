@@ -5,16 +5,8 @@
     </h2>
     <div v-for="(p, idx) in passports" :key="idx" class="passport-card">
       <div class="img-col">
-        <img
-          :src="backendUrl + '/api/passport-img/' + p.image_photo"
-          class="avatar"
-          alt="Photo"
-        />
-        <img
-          :src="backendUrl + '/api/passport-img/' + p.image_vis"
-          class="passport"
-          alt="Passport"
-        />
+        <img :src="p.image_photo_base64" class="avatar" alt="Photo" />
+        <img :src="p.image_vis_base64" class="passport" alt="Passport" />
       </div>
       <div class="info-col">
         <div class="mrz-label">Mã ICAO/MRZ:</div>
@@ -63,15 +55,62 @@ export default {
   methods: {
     async fetchPassports() {
       const res = await axios.get(this.backendUrl + "/api/pending-passports");
-      this.passports = res.data;
+      const list = res.data;
+      for (const p of list) {
+        const [photo, vis] = await Promise.all([
+          axios.get(
+            this.backendUrl + "/api/passport-img-base64/" + p.image_photo
+          ),
+          axios.get(
+            this.backendUrl + "/api/passport-img-base64/" + p.image_vis
+          ),
+        ]);
+        p.image_photo_base64 = photo.data.base64;
+        p.image_vis_base64 = vis.data.base64;
+      }
+      this.passports = list;
     },
     async confirm(p) {
+      console.warn("==> [Check] Gửi check-passport", p.icao_mrz);
+      // 1. Check passport
       const res = await axios.post(this.backendUrl + "/check-passport", {
         icao_mrz: p.icao_mrz,
       });
-      this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
-      this.infoDialog = true;
-      setTimeout(this.fetchPassports, 500);
+      console.warn("==> [Check] Kết quả từ backend:", res.data);
+      if (res.data.result === "new customer created") {
+        // 2. Gửi tiếp 2 file ảnh
+        const formData = new FormData();
+        formData.append("customer_code", res.data.customer_code);
+        console.warn("==> [Upload] Chuẩn bị upload ảnh...");
+        formData.append(
+          "image_photo",
+          await fetch(
+            this.backendUrl + "/api/passport-img/" + p.image_photo
+          ).then((r) => r.blob()),
+          p.image_photo
+        );
+        formData.append(
+          "image_vis",
+          await fetch(
+            this.backendUrl + "/api/passport-img/" + p.image_vis
+          ).then((r) => r.blob()),
+          p.image_vis
+        );
+
+        await axios.post(
+          this.backendUrl + "/upload-passport-images",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
+        this.infoDialog = true;
+        setTimeout(this.fetchPassports, 500);
+      } else {
+        this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
+        this.infoDialog = true;
+      }
     },
   },
   mounted() {
