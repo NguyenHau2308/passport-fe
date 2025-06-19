@@ -78,6 +78,7 @@ export default {
         params.append("customer_code", res.data.customer_code);
         params.append("image_photo", p.image_photo);
         params.append("image_vis", p.image_vis);
+        params.append("prefix", p.info_file.split("-")[0]);
 
         console.warn(
           "==> [Upload] Chuẩn bị gửi tên file (x-www-form-urlencoded)"
