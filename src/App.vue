@@ -151,7 +151,7 @@ export default {
     setInterval(() => {
       this.fetchPassports();
       this.fetchProcessed();
-    }, 10000);
+    }, 30000);
   },
 };
 </script>
