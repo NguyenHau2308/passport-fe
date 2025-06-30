@@ -3,6 +3,14 @@
     <h2 style="font-size: 2rem; font-weight: bold; margin-bottom: 32px">
       Danh sách passport chờ xác nhận
     </h2>
+    <button
+      v-if="getAccessToken()"
+      @click="logoutKeycloak"
+      style="position: fixed; top: 24px; right: 24px; z-index: 1000"
+    >
+      Đăng xuất
+    </button>
+
     <div v-for="(p, idx) in passports" :key="idx" class="passport-card">
       <div class="img-col">
         <img
@@ -62,6 +70,8 @@
 
 <script>
 import axios from "axios";
+import { logoutKeycloak, getAccessToken } from "./utils/keycloak.js";
+
 export default {
   data() {
     return {
@@ -73,6 +83,8 @@ export default {
     };
   },
   methods: {
+    logoutKeycloak,
+    getAccessToken,
     async fetchPassports() {
       const res = await axios.get(this.backendUrl + "/api/pending-passports");
       this.passports = res.data;
