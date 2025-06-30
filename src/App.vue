@@ -25,7 +25,46 @@
         />
       </div>
       <div class="info-col">
-        <div class="mrz-label">Mã ICAO/MRZ:</div>
+        <div class="mrz-label">Thông tin trích xuất từ ICAO/MRZ:</div>
+        <table class="mrz-table">
+          <tr>
+            <td>Passport Type</td>
+            <td>{{ p.mrz_fields?.type || "" }}</td>
+          </tr>
+          <tr>
+            <td>Country Code</td>
+            <td>{{ p.mrz_fields?.country_code || "" }}</td>
+          </tr>
+          <tr>
+            <td>Last Name</td>
+            <td>{{ p.mrz_fields?.last_name || "" }}</td>
+          </tr>
+          <tr>
+            <td>First Name</td>
+            <td>{{ p.mrz_fields?.first_name || "" }}</td>
+          </tr>
+          <tr>
+            <td>Passport No</td>
+            <td>{{ p.mrz_fields?.passport_no || "" }}</td>
+          </tr>
+          <tr>
+            <td>Nationality</td>
+            <td>{{ p.mrz_fields?.nationality || "" }}</td>
+          </tr>
+          <tr>
+            <td>Date of Birth</td>
+            <td>{{ p.mrz_fields?.date_of_birth || "" }}</td>
+          </tr>
+          <tr>
+            <td>Gender</td>
+            <td>{{ p.mrz_fields?.gender || "" }}</td>
+          </tr>
+          <tr>
+            <td>Date of Expiry</td>
+            <td>{{ p.mrz_fields?.date_of_expiry || "" }}</td>
+          </tr>
+        </table>
+        <div class="mrz-label" style="margin-top: 8px">Mã ICAO/MRZ:</div>
         <pre class="mrz-code">{{ p.icao_mrz }}</pre>
         <button class="confirm-btn" @click="confirm(p)">
           Xác nhận (Confirm)
@@ -281,5 +320,18 @@ export default {
 }
 .info-dialog button:hover {
   background: #0073b7;
+}
+.mrz-table {
+  margin-bottom: 14px;
+  border-collapse: collapse;
+}
+.mrz-table td {
+  border: 1px solid #eee;
+  padding: 4px 12px;
+  font-size: 1rem;
+}
+.mrz-table tr td:first-child {
+  font-weight: bold;
+  background: #fafafa;
 }
 </style>
