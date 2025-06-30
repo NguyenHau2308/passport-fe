@@ -27,42 +27,44 @@
       <div class="info-col">
         <div class="mrz-label">Thông tin trích xuất từ ICAO/MRZ:</div>
         <table class="mrz-table">
-          <tr>
-            <td>Passport Type</td>
-            <td>{{ p.mrz_fields?.type || "" }}</td>
-          </tr>
-          <tr>
-            <td>Country Code</td>
-            <td>{{ p.mrz_fields?.country_code || "" }}</td>
-          </tr>
-          <tr>
-            <td>Last Name</td>
-            <td>{{ p.mrz_fields?.last_name || "" }}</td>
-          </tr>
-          <tr>
-            <td>First Name</td>
-            <td>{{ p.mrz_fields?.first_name || "" }}</td>
-          </tr>
-          <tr>
-            <td>Passport No</td>
-            <td>{{ p.mrz_fields?.passport_no || "" }}</td>
-          </tr>
-          <tr>
-            <td>Nationality</td>
-            <td>{{ p.mrz_fields?.nationality || "" }}</td>
-          </tr>
-          <tr>
-            <td>Date of Birth</td>
-            <td>{{ p.mrz_fields?.date_of_birth || "" }}</td>
-          </tr>
-          <tr>
-            <td>Gender</td>
-            <td>{{ p.mrz_fields?.gender || "" }}</td>
-          </tr>
-          <tr>
-            <td>Date of Expiry</td>
-            <td>{{ p.mrz_fields?.date_of_expiry || "" }}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>Passport Type</td>
+              <td>{{ p.mrz_fields?.type || "" }}</td>
+            </tr>
+            <tr>
+              <td>Country Code</td>
+              <td>{{ p.mrz_fields?.country_code || "" }}</td>
+            </tr>
+            <tr>
+              <td>Last Name</td>
+              <td>{{ p.mrz_fields?.last_name || "" }}</td>
+            </tr>
+            <tr>
+              <td>First Name</td>
+              <td>{{ p.mrz_fields?.first_name || "" }}</td>
+            </tr>
+            <tr>
+              <td>Passport No</td>
+              <td>{{ p.mrz_fields?.passport_no || "" }}</td>
+            </tr>
+            <tr>
+              <td>Nationality</td>
+              <td>{{ p.mrz_fields?.nationality || "" }}</td>
+            </tr>
+            <tr>
+              <td>Date of Birth</td>
+              <td>{{ p.mrz_fields?.date_of_birth || "" }}</td>
+            </tr>
+            <tr>
+              <td>Gender</td>
+              <td>{{ p.mrz_fields?.gender || "" }}</td>
+            </tr>
+            <tr>
+              <td>Date of Expiry</td>
+              <td>{{ p.mrz_fields?.date_of_expiry || "" }}</td>
+            </tr>
+          </tbody>
         </table>
         <div class="mrz-label" style="margin-top: 8px">Mã ICAO/MRZ:</div>
         <pre class="mrz-code">{{ p.icao_mrz }}</pre>
@@ -108,6 +110,28 @@
 </template>
 
 <script>
+function parseMRZ(mrz) {
+  const lines = (mrz || "")
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (lines.length < 2) return {};
+  const l1 = lines[0],
+    l2 = lines[1];
+  return {
+    type: l1.slice(0, 2).replace(/</g, ""),
+    country_code: l1.slice(2, 5).replace(/</g, ""),
+    last_name: l1.slice(5).split("<<")[0].replace(/</g, ""),
+    first_name: l1.slice(5).split("<<")[1]?.replace(/</g, "") || "",
+    passport_no: l2.slice(0, 9).replace(/</g, ""),
+    nationality: l2.slice(10, 13).replace(/</g, ""),
+    date_of_birth:
+      "19" + l2.slice(13, 15) + "-" + l2.slice(15, 17) + "-" + l2.slice(17, 19),
+    gender: l2[20],
+    date_of_expiry:
+      "20" + l2.slice(21, 23) + "-" + l2.slice(23, 25) + "-" + l2.slice(25, 27),
+  };
+}
 import axios from "axios";
 import { logoutKeycloak, getAccessToken } from "./utils/keycloak.js";
 
@@ -126,7 +150,11 @@ export default {
     getAccessToken,
     async fetchPassports() {
       const res = await axios.get(this.backendUrl + "/api/pending-passports");
-      this.passports = res.data;
+      console.log("API trả về:", res.data);
+      this.passports = res.data.map((p) => ({
+        ...p,
+        mrz_fields: parseMRZ(p.icao_mrz),
+      }));
     },
     async fetchProcessed() {
       const res = await axios.get(this.backendUrl + "/api/processed-passports");
@@ -134,10 +162,16 @@ export default {
     },
     async confirm(p) {
       console.warn("==> [Check] Gửi check-passport", p.icao_mrz);
-      // 1. Check passport
-      const res = await axios.post(this.backendUrl + "/check-passport", {
-        icao_mrz: p.icao_mrz,
-      });
+      // 1. Check passport (GỬI TOKEN)
+      const res = await axios.post(
+        this.backendUrl + "/check-passport",
+        { icao_mrz: p.icao_mrz },
+        {
+          headers: {
+            Authorization: "Bearer " + getAccessToken(),
+          },
+        }
+      );
       console.warn("==> [Check] Kết quả từ backend:", res.data);
       if (res.data.result === "new customer created") {
         // 2. Gửi metadata tên file (không gửi file thật)
@@ -152,7 +186,10 @@ export default {
         );
 
         await axios.post(this.backendUrl + "/upload-passport-images", params, {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: "Bearer " + getAccessToken(),
+          },
         });
 
         this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
