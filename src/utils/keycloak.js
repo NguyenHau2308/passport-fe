@@ -36,10 +36,10 @@ export function logoutKeycloak() {
             console.log('BE logout status:', res.status);
             localStorage.removeItem('kc_token');
             localStorage.removeItem('kc_refresh_token');
-            // console.log('Token đã remove:',
-            //     'kc_token:', localStorage.getItem('kc_token'),
-            //     'kc_refresh_token:', localStorage.getItem('kc_refresh_token')
-            // );
+            console.log('Token đã remove:',
+                'kc_token:', localStorage.getItem('kc_token'),
+                'kc_refresh_token:', localStorage.getItem('kc_refresh_token')
+            );
             // setTimeout(() => {
             //     window.location = '/';
             // }, 10000);

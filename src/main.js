@@ -6,19 +6,14 @@ const redirectUri = window.location.origin
 
 if (!getAccessToken() && !window.location.search.includes('code=')) {
     loginKeycloak();
-}
-
-if (window.location.search.includes('code=')) {
+} else if (window.location.search.includes('code=')) {
     const code = new URLSearchParams(window.location.search).get('code');
-    fetch('http://localhost:8080/realms/passport-realm/protocol/openid-connect/token', {
+    fetch(`${process.env.VUE_APP_BE_URL}/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            grant_type: 'authorization_code',
             code,
-            client_id: 'passport-app',
-            client_secret: 'NgrqjI3dqFUn2lztBRJNi0i7MJaPxCT7',
-            redirect_uri: redirectUri,
+            redirect_uri: redirectUri
         })
     })
         .then(r => r.json())
