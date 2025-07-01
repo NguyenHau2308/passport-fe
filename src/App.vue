@@ -68,7 +68,11 @@
         </table>
         <div class="mrz-label" style="margin-top: 8px">Mã ICAO/MRZ:</div>
         <pre class="mrz-code">{{ p.icao_mrz }}</pre>
-        <button class="confirm-btn" @click="confirm(p)">
+        <button
+          class="confirm-btn"
+          @click="confirm(p)"
+          :disabled="roles.includes('viewer')"
+        >
           Xác nhận (Confirm)
         </button>
       </div>
@@ -100,7 +104,11 @@
       <div class="info-col">
         <div>
           <b>{{ "KH" + p.prefix.padStart(3, "0") }}</b> -
-          <button class="confirm-btn" @click="printPassport(p)">
+          <button
+            class="confirm-btn"
+            @click="printPassport(p)"
+            :disabled="roles.includes('viewer')"
+          >
             In giấy xác nhận
           </button>
         </div>
@@ -133,7 +141,11 @@ function parseMRZ(mrz) {
   };
 }
 import axios from "axios";
-import { logoutKeycloak, getAccessToken } from "./utils/keycloak.js";
+import {
+  logoutKeycloak,
+  getAccessToken,
+  getUserRoles,
+} from "./utils/keycloak.js";
 
 export default {
   data() {
@@ -143,11 +155,13 @@ export default {
       backendUrl: "http://localhost:4000",
       infoDialog: false,
       infoData: {},
+      roles: [],
     };
   },
   methods: {
     logoutKeycloak,
     getAccessToken,
+    getUserRoles,
     async fetchPassports() {
       const res = await axios.get(this.backendUrl + "/api/pending-passports");
       console.log("API trả về:", res.data);
@@ -246,6 +260,7 @@ export default {
     },
   },
   mounted() {
+    this.roles = getUserRoles();
     this.fetchPassports();
     this.fetchProcessed();
     setInterval(() => {
@@ -382,5 +397,10 @@ export default {
 .mrz-table tr td:first-child {
   font-weight: bold;
   background: #fafafa;
+}
+.confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 </style>
