@@ -25,6 +25,9 @@ if (window.location.search.includes('code=')) {
         .then(data => {
             if (data.access_token) {
                 localStorage.setItem('kc_token', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('kc_refresh_token', data.refresh_token);
+                }
                 window.location = redirectUri;
             } else {
                 alert('Lỗi đăng nhập Keycloak:\n' + (data.error_description || JSON.stringify(data)));
