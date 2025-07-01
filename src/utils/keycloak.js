@@ -18,9 +18,9 @@ export function getUserRoles() {
     }
 }
 export function logoutKeycloak() {
-    console.log('Logging out Keycloak...');
-    console.log('kc_token:', localStorage.getItem('kc_token'));
-    console.log('kc_refresh_token:', localStorage.getItem('kc_refresh_token'));
+    // console.log('Logging out Keycloak...');
+    // console.log('kc_token:', localStorage.getItem('kc_token'));
+    // console.log('kc_refresh_token:', localStorage.getItem('kc_refresh_token'));
     fetch(`${process.env.VUE_APP_BE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
@@ -36,13 +36,13 @@ export function logoutKeycloak() {
             console.log('BE logout status:', res.status);
             localStorage.removeItem('kc_token');
             localStorage.removeItem('kc_refresh_token');
-            console.log('Token đã remove:',
-                'kc_token:', localStorage.getItem('kc_token'),
-                'kc_refresh_token:', localStorage.getItem('kc_refresh_token')
-            );
-            setTimeout(() => {
-                window.location = '/';
-            }, 10000);
+            // console.log('Token đã remove:',
+            //     'kc_token:', localStorage.getItem('kc_token'),
+            //     'kc_refresh_token:', localStorage.getItem('kc_refresh_token')
+            // );
+            // setTimeout(() => {
+            //     window.location = '/';
+            // }, 10000);
         })
         .catch(e => {
             console.error('Logout error:', e);
