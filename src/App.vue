@@ -161,43 +161,55 @@ export default {
       this.processedPassports = res.data;
     },
     async confirm(p) {
-      console.warn("==> [Check] Gửi check-passport", p.icao_mrz);
-      // 1. Check passport (GỬI TOKEN)
-      const res = await axios.post(
-        this.backendUrl + "/check-passport",
-        { icao_mrz: p.icao_mrz },
-        {
-          headers: {
-            Authorization: "Bearer " + getAccessToken(),
-          },
-        }
-      );
-      console.warn("==> [Check] Kết quả từ backend:", res.data);
-      if (res.data.result === "new customer created") {
-        // 2. Gửi metadata tên file (không gửi file thật)
-        const params = new URLSearchParams();
-        params.append("customer_code", res.data.customer_code);
-        params.append("image_photo", p.image_photo);
-        params.append("image_vis", p.image_vis);
-        params.append("prefix", p.info_file.split("-")[0]);
-
-        console.warn(
-          "==> [Upload] Chuẩn bị gửi tên file (x-www-form-urlencoded)"
+      try {
+        console.warn("==> [Check] Gửi check-passport", p.icao_mrz);
+        // 1. Check passport (GỬI TOKEN)
+        const res = await axios.post(
+          this.backendUrl + "/check-passport",
+          { icao_mrz: p.icao_mrz },
+          {
+            headers: {
+              Authorization: "Bearer " + getAccessToken(),
+              "Content-Type": "application/json",
+            },
+          }
         );
+        console.warn("==> [Check] Kết quả từ backend:", res.data);
+        if (res.data.result === "new customer created") {
+          const params = new URLSearchParams();
+          params.append("customer_code", res.data.customer_code);
+          params.append("image_photo", p.image_photo);
+          params.append("image_vis", p.image_vis);
+          params.append("prefix", p.info_file.split("-")[0]);
 
-        await axios.post(this.backendUrl + "/upload-passport-images", params, {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: "Bearer " + getAccessToken(),
-          },
-        });
+          console.warn(
+            "==> [Upload] Chuẩn bị gửi tên file (x-www-form-urlencoded)"
+          );
 
-        this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
-        this.infoDialog = true;
-        setTimeout(this.fetchPassports, 500);
-      } else {
-        this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
-        this.infoDialog = true;
+          await axios.post(
+            this.backendUrl + "/upload-passport-images",
+            params,
+            {
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: "Bearer " + getAccessToken(),
+              },
+            }
+          );
+
+          this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
+          this.infoDialog = true;
+          setTimeout(this.fetchPassports, 500);
+        } else {
+          this.infoData = { ...res.data, icao_mrz: p.icao_mrz };
+          this.infoDialog = true;
+        }
+      } catch (err) {
+        if (err.response && err.response.status === 403) {
+          alert("Bạn không có quyền thực hiện xác nhận passport này.");
+        } else {
+          alert("Có lỗi xảy ra, vui lòng thử lại hoặc liên hệ admin.");
+        }
       }
     },
     printPassport(passport) {

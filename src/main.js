@@ -17,6 +17,7 @@ if (window.location.search.includes('code=')) {
             grant_type: 'authorization_code',
             code,
             client_id: 'passport-app',
+            client_secret: 'NgrqjI3dqFUn2lztBRJNi0i7MJaPxCT7',
             redirect_uri: redirectUri,
         })
     })
