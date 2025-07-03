@@ -152,7 +152,7 @@ export default {
     return {
       passports: [],
       processedPassports: [],
-      backendUrl: "http://localhost:4000",
+      backendUrl: process.env.VUE_APP_BE_URL,
       infoDialog: false,
       infoData: {},
       roles: [],
