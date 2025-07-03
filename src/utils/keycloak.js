@@ -1,9 +1,9 @@
-console.log('VITE_BE_URL:', import.meta.env.VITE_BE_URL);
+console.log('VUE_APP_BE_URL:', process.env.VUE_APP_BE_URL);
 // export function loginKeycloak() {
 //     window.location = `${process.env.VUE_APP_BE_URL}/auth/login?redirect_uri=${encodeURIComponent(window.location.origin)}`;
 // }
 
-const BE_URL = import.meta.env.VITE_BE_URL;
+const BE_URL = process.env.VUE_APP_BE_URL;
 
 export function loginKeycloak() {
     window.location = `${BE_URL}/auth/login?redirect_uri=${encodeURIComponent(window.location.origin)}`;

@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { getAccessToken, loginKeycloak } from './utils/keycloak.js'
 
-const BE_URL = import.meta.env.VITE_BE_URL;
+const BE_URL = process.env.VUE_APP_BE_URL;
 const redirectUri = window.location.origin;
 
 if (!getAccessToken() && !window.location.search.includes('code=')) {
