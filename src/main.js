@@ -2,13 +2,14 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { getAccessToken, loginKeycloak } from './utils/keycloak.js'
 
-const redirectUri = window.location.origin
+const BE_URL = import.meta.env.VITE_BE_URL;
+const redirectUri = window.location.origin;
 
 if (!getAccessToken() && !window.location.search.includes('code=')) {
     loginKeycloak();
 } else if (window.location.search.includes('code=')) {
     const code = new URLSearchParams(window.location.search).get('code');
-    fetch(`${process.env.VUE_APP_BE_URL}/auth/token`, {
+    fetch(`${BE_URL}/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
